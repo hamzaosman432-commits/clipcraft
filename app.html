@@ -6,7 +6,7 @@
 <title>Clipcraft Studio - Free AI video editor for shorts</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Montserrat:wght@700;900&family=Playfair+Display:ital,wght@0,600;1,600&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0E0D1A;--panel:#171529;--panel2:#211E3A;--line:#2E2A4A;--text:#F2F1FF;--muted:#A29FC8;
@@ -170,6 +170,9 @@ video#v{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
         <button class="chip" data-s="neon" aria-pressed="false">Neon</button>
         <button class="chip" data-s="outline" aria-pressed="false">Outline</button>
         <button class="chip" data-s="block" aria-pressed="false">Block</button>
+        <button class="chip" data-s="minimal" aria-pressed="false">Minimal</button>
+        <button class="chip" data-s="elegant" aria-pressed="false">Elegant</button>
+        <button class="chip" data-s="redline" aria-pressed="false">Redline</button>
       </div>
       <div class="row">
         <div><label class="f" for="size">Size</label><input type="range" id="size" min="60" max="160" value="100"></div>
@@ -687,6 +690,8 @@ async function loadFile(f){
   catch { setStatus('This browser cannot read that video. Try an MP4 (H.264).', true); return; }
   sizeCanvas();
   await document.fonts.load('900 40px Montserrat').catch(()=>{});
+  await document.fonts.load('800 40px "Baloo 2"').catch(()=>{});
+  await document.fonts.load('italic 600 40px "Playfair Display"').catch(()=>{});
   drop.style.display = 'none'; canvas.style.display = 'block'; $('ctrl').style.display = 'flex';
   $('gen').disabled = false; $('export').disabled = true; $('dl').style.display = 'none';
   S.range = [0, video.duration]; $('rs').value = '0'; $('re').value = video.duration.toFixed(1);
@@ -787,7 +792,85 @@ function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,
 const FONT = 'Montserrat,"Noto Sans","Segoe UI",Arial,sans-serif';
 const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const range = (a,b) => Array.from({length:b-a}, (_,i) => a+i);
-const weightOf = st => st === 'clean' ? 700 : 900;
+const weightOf = st => st === 'clean' ? 700 : st === 'minimal' ? 800 : 900;
+const SERIF = '"Playfair Display",Georgia,serif';
+
+/* per-style emoji animation: returns {scale, alpha, rot, dy} for u = seconds since caption start */
+const clamp01 = x => Math.max(0, Math.min(1, x));
+function easeOutBack(x){ const c1 = 1.70158, c3 = c1 + 1; return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2); }
+function emojiFX(style, u){
+  let scale = 1, alpha = 1, rot = 0, dy = 0;
+  if (style === 'story' || style === 'box') {
+    const p = clamp01(u/0.22); scale = p < 1 ? 0.3 + 0.9*easeOutBack(p) : 1;
+  } else if (style === 'pop') {
+    const p = clamp01(u/0.16);
+    scale = p < 1 ? 0.2 + 1.3*p*p : 1.3 - 0.3*clamp01((u-0.16)/0.12);
+  } else if (style === 'clean' || style === 'minimal') {
+    const p = clamp01(u/0.3); alpha = p; scale = 0.85 + 0.15*p;
+  } else if (style === 'neon') {
+    scale = 0.9 + 0.1*Math.min(1, u/0.2);
+    alpha = u < 0.35 ? (Math.sin(u*45) > 0 ? 1 : 0.3) : 1;
+  } else if (style === 'outline') {
+    scale = clamp01(u/0.12);
+  } else if (style === 'block') {
+    const p = clamp01(u/0.25); alpha = p; dy = (1-p)*0.3;
+  } else if (style === 'elegant') {
+    alpha = clamp01(u/0.45);
+  } else if (style === 'redline') {
+    const p = clamp01(u/0.12);
+    scale = p < 1 ? 0.3 + 1.6*p : 1.9 - 0.9*clamp01((u-0.12)/0.1);
+    rot = u < 0.2 ? Math.sin(u*60) * 0.12 * (1 - clamp01(u/0.2)) : 0;
+  } else {
+    scale = 0.4 + 0.6*easeOutBack(clamp01(u/0.2));
+  }
+  return { scale, alpha, rot, dy };
+}
+function drawEmojiAt(cx, cy, emoji, fs, style, u){
+  const fx = emojiFX(style, u);
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, fx.alpha));
+  ctx.translate(cx, cy + fx.dy*fs);
+  ctx.rotate(fx.rot);
+  ctx.scale(fx.scale, fx.scale);
+  ctx.font = `${fs}px ${EMO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+  ctx.fillText(emoji, 0, 0);
+  ctx.restore();
+}
+
+function drawElegant(c, t){
+  const W = canvas.width, H = canvas.height;
+  let fs = W * 0.062 * CF.size, gap = fs * 0.22;
+  const words = c.words.map(w => w.t.toLowerCase());
+  const fontFor = i => i % 2 === 0 ? `italic 600 ${fs}px ${SERIF}` : `500 ${fs*0.92}px ${FONT}`;
+  const widthsAt = () => words.map((w,i) => { ctx.font = fontFor(i); return ctx.measureText(w).width; });
+  let w = widthsAt();
+  const n = words.length;
+  const idx = n >= 4 ? [range(0, Math.ceil(n/2)), range(Math.ceil(n/2), n)] : [range(0,n)];
+  let lw = idx.map(l => l.reduce((a,i) => a + w[i], 0) + gap*(l.length-1));
+  let maxW = Math.max(...lw);
+  if (maxW > W*0.88) { fs *= (W*0.88)/maxW; gap = fs*0.22; w = widthsAt(); lw = idx.map(l => l.reduce((a,i) => a + w[i], 0) + gap*(l.length-1)); }
+  let ai = 0; c.words.forEach((wd,i) => { if (t >= wd.s - 0.02) ai = i; });
+  const lineH = fs*1.3, showE = CF.emoji && c.emoji;
+  const blockH = idx.length*lineH + (showE ? fs*1.2 : 0);
+  const top = H*CF.pos - blockH/2;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  const col = CF.colors[c.color] || '#FFE600';
+  idx.forEach((line, li) => {
+    const y = top + lineH*(li + 0.5); let x = (W - lw[li]) / 2;
+    line.forEach(i => {
+      ctx.font = fontFor(i);
+      const word = words[i], wd = w[i], active = i === ai;
+      ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = fs*0.22; ctx.shadowOffsetY = fs*0.04;
+      ctx.fillStyle = active ? col : '#fff';
+      ctx.fillText(word, x, y);
+      ctx.shadowColor = 'transparent';
+      x += wd + gap;
+    });
+  });
+  if (showE) {
+    drawEmojiAt(W/2, top + idx.length*lineH + fs*0.55, c.emoji, fs*1.05, 'elegant', Math.max(0, t - c.start));
+  }
+}
 
 function layout(texts, fs, st, cjk){
   ctx.font = `${weightOf(st)} ${fs}px ${FONT}`;
@@ -802,7 +885,46 @@ function layout(texts, fs, st, cjk){
   return { idx, widths, gap, lw, maxW:Math.max(...lw) };
 }
 
+function drawRedline(c, t){
+  const W = canvas.width, H = canvas.height;
+  const BALOO = '"Baloo 2","Comic Sans MS",sans-serif';
+  const isNum = w => /\d/.test(w);
+  const small = c.words.filter(w => !isNum(w.t)).map(w => w.t);
+  const big = c.words.filter(w => isNum(w.t)).map(w => w.t);
+  let fsS = W * 0.052 * CF.size, fsB = W * 0.09 * CF.size;
+  const measure = (arr, font, fs) => { ctx.font = `${font.w} ${fs}px ${font.f}`; return arr.reduce((a,w) => a + ctx.measureText(w + ' ').width, 0); };
+  let wS = measure(small, {w:700,f:BALOO}, fsS), wB = measure(big, {w:900,f:FONT}, fsB);
+  if (Math.max(wS, wB) > W*0.92) { const k = (W*0.92) / Math.max(wS, wB); fsS *= k; fsB *= k; wS *= k; wB *= k; }
+  let ai = 0; c.words.forEach((w,i) => { if (t >= w.s - 0.02) ai = i; });
+  const lines = []; if (small.length) lines.push({ words:small, fs:fsS, font:BALOO, fw:700, col:'#ED1C24', w:wS });
+  if (big.length) lines.push({ words:big, fs:fsB, font:FONT, fw:900, col:'#fff', w:wB, stroke:true });
+  const showE = CF.emoji && c.emoji;
+  const lineH = (l) => l.fs * 1.2;
+  const blockH = lines.reduce((a,l) => a + lineH(l), 0) + (showE ? fsB*1.1 : 0);
+  const top = H*CF.pos - blockH/2;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.lineJoin = 'round';
+  let y = top;
+  lines.forEach(l => {
+    y += lineH(l)/2;
+    ctx.font = `${l.fw} ${l.fs}px ${l.font}`;
+    let x = (W - l.w) / 2;
+    l.words.forEach(w => {
+      if (l.stroke) { ctx.lineWidth = l.fs*0.16; ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.strokeText(w, x, y); }
+      ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = l.fs*0.15; ctx.shadowOffsetY = l.fs*0.05;
+      ctx.fillStyle = l.col; ctx.fillText(w, x, y);
+      ctx.shadowColor = 'transparent';
+      x += ctx.measureText(w + ' ').width;
+    });
+    y += lineH(l)/2;
+  });
+  if (showE) {
+    drawEmojiAt(W/2, top + blockH - fsB*0.5, c.emoji, fsB*1.3, 'redline', Math.max(0, t - c.start));
+  }
+}
+
 function drawCaption(c, t){
+  if (CF.style === 'elegant') return drawElegant(c, t);
+  if (CF.style === 'redline') return drawRedline(c, t);
   const W = canvas.width, H = canvas.height, st = CF.style;
   let fs = W * 0.07 * CF.size * (st === 'clean' ? 0.85 : 1);
   const texts = c.words.map(w => CF.upper ? w.t.toUpperCase() : w.t);
@@ -844,6 +966,10 @@ function drawCaption(c, t){
         else { ctx.strokeStyle = '#fff'; ctx.strokeText(word, px, 0); }
       } else if (st === 'block') {
         ctx.fillStyle = active ? col : '#fff'; ctx.fillText(word, px, 0);
+      } else if (st === 'minimal') {
+        ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = fs*0.18; ctx.shadowOffsetY = fs*0.06;
+        ctx.fillStyle = active ? col : '#fff'; ctx.fillText(word, px, 0);
+        ctx.shadowColor = 'transparent';
       } else {
         ctx.lineWidth = fs*0.24; ctx.strokeStyle = '#000';
         ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowOffsetY = fs*0.08; ctx.shadowBlur = 0;
@@ -856,10 +982,7 @@ function drawCaption(c, t){
     });
   });
   if (showE) {
-    const k = Math.min(1, 0.4 + 0.6 * Math.max(0, (t - c.start)) / 0.15);
-    ctx.save(); ctx.translate(W/2, top + L.idx.length*lineH + fs*0.6); ctx.scale(k, k);
-    ctx.font = `${fs*1.1}px ${EMO}`; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(c.emoji, 0, 0);
-    ctx.restore();
+    drawEmojiAt(W/2, top + L.idx.length*lineH + fs*0.6, c.emoji, fs*1.1, st, Math.max(0, t - c.start));
   }
 }
 
