@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clipcraft Studio - Free AI video editor for shorts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Montserrat:wght@700;900&family=Playfair+Display:ital,wght@0,600;1,600&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E0D1A;--panel:#171529;--panel2:#211E3A;--line:#2E2A4A;--text:#F2F1FF;--muted:#A29FC8;
+  --violet:#7A5CFF;--violet-deep:#5238D6;--yellow:#FFD84A;--coral:#FF5C7A;--ok:#3DDC84;
+  --display:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--body);background:var(--bg);color:var(--text);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:6px}
+h2{font-family:var(--display);font-size:1.25rem;letter-spacing:-.02em;margin-bottom:4px}
+h3{font-size:.95rem;margin:16px 0 8px}
+.lead{color:var(--muted);font-size:.9rem;margin-bottom:14px}
+
+/* top bar */
+.top{height:56px;display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--panel);flex:none}
+.logo{font:800 1.25rem var(--display);letter-spacing:-.03em;text-decoration:none;color:var(--text);display:flex;align-items:center;gap:.5rem}
+.logo i{width:22px;height:22px;background:var(--violet);border-radius:7px 7px 7px 2px;display:inline-block;position:relative}
+.logo i::after{content:"";position:absolute;left:5px;right:5px;top:9px;height:4px;background:var(--yellow);border-radius:2px}
+.top .sp{flex:1}
+.top a.home{color:var(--muted);text-decoration:none;font-size:.9rem}
+.pill{font:600 .9rem var(--body);padding:.5rem 1.1rem;border-radius:999px;border:0;background:var(--yellow);color:#1b1500;cursor:pointer}
+.pill:disabled{opacity:.4;cursor:not-allowed}
+
+/* layout */
+.app{flex:1;display:grid;grid-template-columns:78px 380px 1fr;min-height:0}
+.rail{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:8px 6px;gap:4px;overflow:auto}
+.rail button{background:transparent;border:0;color:var(--muted);font:600 .74rem var(--body);padding:12px 2px;border-radius:12px;cursor:pointer;text-align:center}
+.rail button:hover{background:var(--panel2);color:var(--text)}
+.rail button[aria-selected="true"]{background:var(--violet);color:#fff}
+.tools{background:var(--panel);border-right:1px solid var(--line);padding:18px;overflow:auto;max-height:calc(100vh - 56px)}
+.tools section{display:none}
+.tools section.on{display:block}
+.center{padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;overflow:auto;max-height:calc(100vh - 56px)}
+@media(max-width:1000px){
+  .app{grid-template-columns:1fr;display:flex;flex-direction:column}
+  .rail{flex-direction:row;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .rail button{flex:none;padding:10px 14px}
+  .tools,.center{max-height:none}
+  .center{order:-1}
+  .tools{order:2}
+}
+
+/* form bits */
+label.f{display:block;font-weight:600;font-size:.85rem;margin:12px 0 5px}
+select,input[type=text],input[type=number],textarea{width:100%;font:500 .92rem var(--body);padding:.55rem .65rem;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text)}
+textarea{resize:vertical;min-height:84px;line-height:1.4}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:.8rem;color:var(--muted);margin-top:5px}
+.check{display:flex;gap:9px;align-items:center;font-weight:500;font-size:.9rem;margin:10px 0;cursor:pointer}
+.check input{width:17px;height:17px;accent-color:var(--violet)}
+input[type=range]{width:100%;accent-color:var(--violet)}
+input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-radius:10px;padding:2px;background:var(--panel2);cursor:pointer}
+input[type=file]{color:var(--muted);font-size:.85rem;width:100%}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font:600 .92rem var(--body);padding:.65rem 1.1rem;border-radius:999px;border:1px solid var(--line);cursor:pointer;background:var(--panel2);color:var(--text);text-decoration:none}
+.btn:hover:not(:disabled){border-color:var(--violet)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--violet);border-color:var(--violet);color:#fff}
+.btn.yellow{background:var(--yellow);border-color:var(--yellow);color:#1b1500}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 4px}
+.chip{font:600 .84rem var(--body);padding:.4rem .9rem;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--violet);border-color:var(--violet)}
+.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:10px;display:none}
+.bar i{display:block;height:100%;width:0;background:var(--violet);transition:width .2s}
+.status{margin-top:10px;font-weight:500;font-size:.9rem}
+.status.err{color:#FF7B93}
+.colors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.sum{font-size:.9rem;color:var(--muted);margin-top:10px}
+.sum b{color:var(--text)}
+
+/* stage */
+.stage{background:#000;border-radius:16px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;width:100%;max-width:760px;border:1px solid var(--line)}
+#canvas{display:none;max-width:100%;max-height:64vh;width:auto;height:auto;border-radius:8px;cursor:pointer}
+.drop{width:100%;padding:60px 18px;border:2px dashed #4a4577;border-radius:14px;color:var(--muted);cursor:pointer;text-align:center}
+.drop.over{border-color:var(--yellow);background:rgba(255,216,74,.06)}
+.drop b{display:block;font:800 1.5rem var(--display);color:#fff;margin-bottom:6px}
+.ctrl{display:none;width:100%;max-width:760px;align-items:center;gap:10px;font-size:.85rem;color:var(--muted)}
+.ctrl button{background:var(--yellow);border:0;border-radius:999px;width:36px;height:36px;font-size:.95rem;cursor:pointer;flex:none}
+.ctrl .col{flex:1;display:flex;flex-direction:column;gap:3px}
+#strip{width:100%;height:16px;border-radius:6px;background:#1d1a33;display:block}
+video#v{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* lists */
+.list{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:12px}
+.ck{display:grid;grid-template-columns:56px 1fr 52px 30px;gap:6px;align-items:center;padding:7px 8px;border-bottom:1px solid var(--line)}
+.ck:last-child{border-bottom:0}
+.ck.now{background:#2a2550}
+.ck button.t{font:600 .75rem var(--body);background:var(--panel2);color:var(--text);border:0;border-radius:8px;padding:.35rem;cursor:pointer}
+.ck input{padding:.35rem .45rem;font-size:.88rem;border-radius:8px}
+.ck input.em{text-align:center;font-size:1.05rem}
+.ck button.x{background:transparent;border:0;font-size:1rem;cursor:pointer;color:var(--muted)}
+.empty{padding:18px;color:var(--muted);font-size:.9rem}
+.res{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.res p{font-size:.88rem;margin:3px 0 0}
+.res .tm{font-weight:700}
+.trow{display:flex;gap:8px;align-items:center;margin-top:8px}
+.trow span{flex:1;font-size:.9rem}
+.small{padding:.35rem .8rem;font-size:.8rem}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="logo" href="index.html"><i></i>Clipcraft</a>
+  <span class="sp"></span>
+  <a class="home" href="index.html">Home</a>
+  <button class="pill" id="topExport">Export</button>
+</header>
+
+<div class="app">
+  <nav class="rail" id="rail" role="tablist" aria-label="Tools">
+    <button role="tab" data-tab="transcript" aria-selected="true">Captions</button>
+    <button role="tab" data-tab="style" aria-selected="false">Style</button>
+    <button role="tab" data-tab="cut" aria-selected="false">Cut</button>
+    <button role="tab" data-tab="zoom" aria-selected="false">Zoom</button>
+    <button role="tab" data-tab="audio" aria-selected="false">Audio</button>
+    <button role="tab" data-tab="post" aria-selected="false">Post</button>
+    <button role="tab" data-tab="shorts" aria-selected="false">Shorts</button>
+    <button role="tab" data-tab="export" aria-selected="false">Export</button>
+  </nav>
+
+  <aside class="tools" id="tools">
+
+    <!-- CAPTIONS -->
+    <section class="on" data-panel="transcript">
+      <h2>Captions</h2>
+      <p class="lead">Add a video, choose the language, and generate.</p>
+      <div class="row">
+        <div><label class="f" for="lang" style="margin-top:0">Spoken language</label><select id="lang"></select></div>
+        <div><label class="f" for="model" style="margin-top:0">Accuracy</label>
+          <select id="model">
+            <option value="Xenova/whisper-tiny">Fast (40 MB)</option>
+            <option value="Xenova/whisper-base" selected>Balanced (80 MB)</option>
+            <option value="Xenova/whisper-small">Best (250 MB)</option>
+          </select></div>
+      </div>
+      <p class="hint">Wrong language? Change it and press Regenerate. Use Best for non-English.</p>
+      <label class="check"><input type="checkbox" id="translate"> Translate captions to English</label>
+      <div class="btns" style="margin-top:6px"><button class="btn primary" id="gen" disabled>Generate captions</button></div>
+      <div class="bar" id="bar"><i id="barfill"></i></div>
+      <p class="status" id="status">Add a video to start.</p>
+      <div class="list" id="list"><p class="empty">Captions appear here. Edit any word or emoji. Clear the emoji box to remove one.</p></div>
+      <div class="btns">
+        <button class="btn" id="resuggest" disabled>Re-suggest emojis</button>
+        <button class="btn" id="srt" disabled>Download .srt</button>
+      </div>
+    </section>
+
+    <!-- STYLE -->
+    <section data-panel="style">
+      <h2>Style</h2>
+      <p class="lead">Pick a caption look. Changes show right away.</p>
+      <div class="chips" role="group" aria-label="Caption style" id="styleChips">
+        <button class="chip" data-s="story" aria-pressed="true">Story</button>
+        <button class="chip" data-s="pop" aria-pressed="false">Pop</button>
+        <button class="chip" data-s="box" aria-pressed="false">Highlight</button>
+        <button class="chip" data-s="clean" aria-pressed="false">Clean</button>
+        <button class="chip" data-s="neon" aria-pressed="false">Neon</button>
+        <button class="chip" data-s="outline" aria-pressed="false">Outline</button>
+        <button class="chip" data-s="block" aria-pressed="false">Block</button>
+        <button class="chip" data-s="minimal" aria-pressed="false">Minimal</button>
+        <button class="chip" data-s="elegant" aria-pressed="false">Elegant</button>
+        <button class="chip" data-s="redline" aria-pressed="false">Redline</button>
+      </div>
+      <div class="row">
+        <div><label class="f" for="size">Size</label><input type="range" id="size" min="60" max="160" value="100"></div>
+        <div><label class="f" for="pos">Height on screen</label><input type="range" id="pos" min="15" max="90" value="62"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="useColors" checked> Use highlight colors (off = plain white text)</label>
+      <label class="f">Highlight colors</label>
+      <div class="colors">
+        <div><input type="color" id="c1" value="#FFE600" aria-label="Highlight color 1"><label class="check" style="margin:6px 0 0"><input type="checkbox" id="c1on" checked> Use</label></div>
+        <div><input type="color" id="c2" value="#FF2A2A" aria-label="Highlight color 2"><label class="check" style="margin:6px 0 0"><input type="checkbox" id="c2on" checked> Use</label></div>
+        <div><input type="color" id="c3" value="#2BFF3A" aria-label="Highlight color 3"><label class="check" style="margin:6px 0 0"><input type="checkbox" id="c3on" checked> Use</label></div>
+      </div>
+      <p class="hint">Untick a color to remove it from rotation. If all three are off, or the switch above is off, captions stay plain white.</p>
+      <label class="check"><input type="checkbox" id="useEmoji" checked> Show emojis</label>
+      <label class="check"><input type="checkbox" id="upper" checked> Uppercase</label>
+    </section>
+
+    <!-- CUT -->
+    <section data-panel="cut">
+      <h2>Cut</h2>
+      <p class="lead">Remove dead air and trim the ends. Cuts are based on the caption timings, so generate captions first.</p>
+      <label class="check"><input type="checkbox" id="silence"> Remove silences</label>
+      <label class="f" for="thr">Cut pauses longer than <b id="thrv">0.45</b> s</label>
+      <input type="range" id="thr" min="20" max="120" value="45">
+      <label class="check"><input type="checkbox" id="fillers"> Remove "um" and "uh"</label>
+      <h3>Trim</h3>
+      <div class="row">
+        <div><label class="f" for="rs" style="margin-top:0">Start (seconds)</label><input type="number" id="rs" min="0" step="0.1" value="0"></div>
+        <div><label class="f" for="re" style="margin-top:0">End (seconds)</label><input type="number" id="re" min="0" step="0.1" value="0"></div>
+      </div>
+      <div class="btns"><button class="btn" id="rreset">Use full video</button></div>
+      <p class="sum" id="cutsum">No video yet.</p>
+      <p class="hint">Cuts are skipped in the preview and in the export. Pause detection is approximate. Raise the number if it clips words.</p>
+    </section>
+
+    <!-- ZOOM -->
+    <section data-panel="zoom">
+      <h2>Auto-zoom</h2>
+      <p class="lead">Zoom in on the beat of your captions to keep the frame moving.</p>
+      <label class="check"><input type="checkbox" id="zoomOn"> Turn on auto-zoom</label>
+      <label class="f" for="zmode">Type</label>
+      <select id="zmode">
+        <option value="punch">Punch (quick zoom on every other caption)</option>
+        <option value="push">Slow push (smooth in and out)</option>
+      </select>
+      <label class="f" for="zmax">Strength <b id="zmaxv">118</b>%</label>
+      <input type="range" id="zmax" min="105" max="140" value="118">
+    </section>
+
+    <!-- AUDIO -->
+    <section data-panel="audio">
+      <h2>Audio</h2>
+      <p class="lead">Mix your own music and sound effects. Use files you have the right to use.</p>
+      <label class="f" for="vvol">Video volume <b id="vvolv">100</b>%</label>
+      <input type="range" id="vvol" min="0" max="150" value="100">
+      <h3>Background music</h3>
+      <input type="file" id="musicFile" accept="audio/*">
+      <label class="f" for="mvol">Music volume <b id="mvolv">15</b>%</label>
+      <input type="range" id="mvol" min="0" max="100" value="15">
+      <p class="hint" id="musicName">No music added. It loops and fades out at the end.</p>
+      <h3>Sound effects</h3>
+      <input type="file" id="sfxFile" accept="audio/*" multiple>
+      <label class="f" for="sfxTrig">Play a sound</label>
+      <select id="sfxTrig">
+        <option value="emoji">When an emoji appears</option>
+        <option value="zoom">On every zoom punch</option>
+        <option value="every">On every caption</option>
+        <option value="none">Never</option>
+      </select>
+      <label class="f" for="svol">Effect volume <b id="svolv">60</b>%</label>
+      <input type="range" id="svol" min="0" max="100" value="60">
+      <p class="hint" id="sfxName">No effects added. With several files, they play in turn.</p>
+      <div class="btns"><button class="btn small" id="clearAudio">Remove music and effects</button></div>
+    </section>
+
+    <!-- POST -->
+    <section data-panel="post">
+      <h2>Post text</h2>
+      <p class="lead">Title, description, and hashtags built from your captions. Simple keyword rules, not AI, so edit them before posting.</p>
+      <div class="chips" role="group" aria-label="Platform" id="platChips">
+        <button class="chip" data-p="yt" aria-pressed="true">YouTube Shorts</button>
+        <button class="chip" data-p="tt" aria-pressed="false">TikTok</button>
+        <button class="chip" data-p="ig" aria-pressed="false">Instagram</button>
+      </div>
+      <div class="btns" style="margin-top:6px"><button class="btn primary" id="postGen">Generate</button></div>
+      <div id="postOut" style="display:none">
+        <h3>Title ideas</h3>
+        <div id="titles"></div>
+        <h3>Description</h3>
+        <textarea id="desc"></textarea>
+        <div class="btns" style="margin-top:8px"><button class="btn small" data-copy="desc">Copy description</button></div>
+        <h3>Hashtags</h3>
+        <textarea id="tags" style="min-height:60px"></textarea>
+        <div class="btns" style="margin-top:8px"><button class="btn small" data-copy="tags">Copy hashtags</button></div>
+      </div>
+    </section>
+
+    <!-- SHORTS -->
+    <section data-panel="shorts">
+      <h2>Long video to shorts</h2>
+      <p class="lead">Finds self-contained parts of a longer video that start and end on a full sentence. It scores hooks, numbers, questions, and emojis. It is a rough guide, so check each pick.</p>
+      <label class="f" style="margin-top:0">Target length</label>
+      <div class="chips" role="group" aria-label="Short length" id="lenChips">
+        <button class="chip" data-l="30" aria-pressed="false">30 s</button>
+        <button class="chip" data-l="45" aria-pressed="false">45 s</button>
+        <button class="chip" data-l="60" aria-pressed="true">60 s</button>
+        <button class="chip" data-l="90" aria-pressed="false">90 s</button>
+      </div>
+      <div class="btns" style="margin-top:6px"><button class="btn primary" id="findShorts">Find shorts</button></div>
+      <div id="shortsOut"></div>
+      <p class="hint">Picking a short sets the trim range. Export it from the Export tab, then pick another.</p>
+    </section>
+
+    <!-- EXPORT -->
+    <section data-panel="export">
+      <h2>Export</h2>
+      <p class="lead">Saves your video with captions, cuts, zoom, and audio.</p>
+      <p class="sum" id="expsum">No video yet.</p>
+      <div class="btns">
+        <button class="btn yellow" id="export" disabled>Export video</button>
+        <a class="btn primary" id="dl" style="display:none">Download video</a>
+      </div>
+      <div class="bar" id="ebar"><i id="ebarfill"></i></div>
+      <p class="hint" id="enote">Export plays the video once in real time. Keep this tab open and in front until it finishes.</p>
+    </section>
+
+  </aside>
+
+  <main class="center">
+    <div class="stage" id="stage">
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a video file">
+        <b>Drop your video here</b>
+        <span>or click to choose a file. MP4, MOV, WebM. Your video never leaves your device.</span>
+      </div>
+      <canvas id="canvas" aria-label="Video preview with captions"></canvas>
+    </div>
+    <div class="ctrl" id="ctrl">
+      <button id="play" aria-label="Play or pause">&#9654;</button>
+      <div class="col">
+        <canvas id="strip" width="1000" height="16" aria-hidden="true"></canvas>
+        <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Seek">
+      </div>
+      <span id="time">0:00</span>
+    </div>
+    <input type="file" id="file" accept="video/*" hidden>
+    <video id="v" playsinline preload="auto"></video>
+  </main>
+</div>
+
+<script type="module">
+// ==LOGIC-START==
+const LANGS = ["english","chinese","german","spanish","russian","korean","french","japanese","portuguese","turkish","polish","catalan","dutch","arabic","swedish","italian","indonesian","hindi","finnish","vietnamese","hebrew","ukrainian","greek","malay","czech","romanian","danish","hungarian","tamil","norwegian","thai","urdu","croatian","bulgarian","lithuanian","latin","maori","malayalam","welsh","slovak","telugu","persian","latvian","bengali","serbian","azerbaijani","slovenian","kannada","estonian","macedonian","breton","basque","icelandic","armenian","nepali","mongolian","bosnian","kazakh","albanian","swahili","galician","marathi","punjabi","sinhala","khmer","shona","yoruba","somali","afrikaans","occitan","georgian","belarusian","tajik","sindhi","gujarati","amharic","yiddish","lao","uzbek","faroese","haitian creole","pashto","turkmen","nynorsk","maltese","sanskrit","luxembourgish","myanmar","tibetan","tagalog","malagasy","assamese","tatar","hawaiian","lingala","hausa","bashkir","javanese","sundanese"];
+
+const EMOJI_RAW = [
+ ['💰','money cash rich dollars dollar dinero plata argent dinheiro geld pesa fedha mali فلوس مال पैसा पैसे'],
+ ['💳','card cards credit tarjeta carte cartao karte kadi بطاقة कार्ड'],
+ ['💍','wedding ring married marriage boda casamiento mariage mariee casamento hochzeit harusi ndoa زواج عرس शादी विवाह'],
+ ['❤️','love loved loves amor amour liebe upendo mapenzi حب प्यार'],
+ ['💔','heartbroken breakup cheated cheat betrayed betrayal divorce divorcio infiel trahison traicion traicao verrat talaka خيانة धोखा'],
+ ['😂','funny lol laugh haha lmao gracioso drole engracado lustig cheka ضحك हंसी'],
+ ['😭','cry cried crying tears sad llorar pleurer chorar weinen lia بكاء रोना'],
+ ['😡','angry mad furious rage enojado enfadado colere raiva wut hasira غاضب गुस्सा'],
+ ['🔥','fire hot lit fuego feu fogo feuer moto نار आग'],
+ ['🚫','uninvited banned blocked forbidden never nunca jamais nie kamwe prohibido interdit proibido marufuku ممنوع'],
+ ['✅','yes done complete completed finished approved oui sim ja ndiyo نعم हां'],
+ ['⚠️','warning careful danger dangerous peligro peligroso perigo gefahr hatari خطر खतरा'],
+ ['👀','look watch watching saw mira mirar regarder olha schau angalia'],
+ ['🤯','shocked shocking crazy insane unbelievable loco increible fou incroyable louco incrivel verruckt unglaublich wazimu'],
+ ['😱','scared scary terrified fear horror miedo peur medo angst hofu خوف डर'],
+ ['🤔','why maybe think thought wonder pensar penser denken kufikiria'],
+ ['⏰','clock alarm late deadline tarde retard atrasado spat kuchelewa'],
+ ['🏠','home house casa maison lar haus nyumba بيت घर'],
+ ['🚗','car cars drive driving coche carro voiture fahren gari سيارة गाड़ी'],
+ ['📱','phone iphone telefono telefone telephone handy simu هاتف फोन'],
+ ['💻','computer laptop computadora ordenador ordinateur computador rechner kompyuta'],
+ ['🎉','party celebrate celebration fiesta fete festa feier sherehe مبروك जश्न'],
+ ['🎂','birthday cake cumpleanos anniversaire aniversario geburtstag keki'],
+ ['🍕','pizza'],
+ ['🍔','burger burgers'],
+ ['☕','coffee cafe kaffee kahawa قهوة कॉफी'],
+ ['🍺','beer cerveza biere cerveja bier bia'],
+ ['🍷','wine vino vin vinho wein divai'],
+ ['🥇','won win winner champion ganar ganador gagner gagnant vencer gewinnen ushindi فوز जीत'],
+ ['🏆','trophy award prize premio prix trofeo trofeu preis tuzo'],
+ ['📈','growth grow profit sales increase crecer ganancia croissance crescer wachsen ukuaji ربح'],
+ ['📉','crash loss lost losing decline perdida perdre perdeu verlust hasara خسارة'],
+ ['⭐','star stars best estrella etoile estrela stern nyota نجمة सितारा'],
+ ['🌍','world earth mundo monde welt dunia عالم दुनिया'],
+ ['☀️','sun sunny sol soleil sonne jua شمس सूरज'],
+ ['🌙','night moon noche nuit noite nacht usiku ليل रात'],
+ ['🌧️','rain lluvia pluie chuva regen mvua مطر बारिश'],
+ ['🐶','dog perro chien cachorro hund mbwa كلب कुत्ता'],
+ ['🐱','cat gato chat katze paka قطة बिल्ली'],
+ ['👶','baby bebe mtoto طفل बच्चा'],
+ ['👨‍👩‍👧','family familia famille familie عائلة परिवार'],
+ ['👩','mom mother mama madre mere mae mutter'],
+ ['👨','dad father padre pere pai vater baba'],
+ ['👭','sister sisters hermana soeur irma schwester dada'],
+ ['👬','brother brothers hermano frere irmao bruder kaka'],
+ ['🤝','deal agreement trust partner acuerdo accord acordo vertrag makubaliano confianza confiance confianca vertrauen'],
+ ['🔑','key secret llave cle chave schlussel ufunguo secreto segredo geheimnis siri'],
+ ['🎬','video film movie pelicula filme'],
+ ['🎵','music song sing musica musique musik muziki wimbo موسيقى संगीत'],
+ ['📚','book books study school libro livre livro buch kitabu كتاب किताब'],
+ ['🎓','graduate graduated college university degree universidad universite universidade chuo'],
+ ['💼','job work boss office trabajo travail trabalho arbeit kazi عمل काम'],
+ ['🏥','hospital doctor sick hopital krankenhaus daktari مستشفى अस्पताल'],
+ ['✈️','flight plane airport travel avion vol aviao flugzeug ndege طائرة'],
+ ['📸','photo photos picture pictures foto picha صورة तस्वीर'],
+ ['💡','idea ideas tip idee ideia wazo فكرة विचार'],
+ ['🙏','please pray prayer thanks thank gracias merci obrigado danke asante شكرا धन्यवाद'],
+ ['😴','tired sleep sleepy cansado fatigue muede usingizi تعب नींद'],
+ ['💪','strong strength gym workout fuerza fuerte force forca stark nguvu قوة ताकत'],
+ ['🧠','brain mind smart cerebro cerveau gehirn akili عقل दिमाग'],
+ ['⚡','fast quick speed instantly rapido rapide schnell haraka سريع तेज'],
+ ['🎯','goal target focus objetivo objectif ziel lengo هدف'],
+ ['🚀','launch startup rocket lanzar lancer lancar starten uzinduzi'],
+ ['🔒','private locked password secure privado prive passwort'],
+ ['😍','beautiful gorgeous amazing hermoso beau lindo schon mzuri جميل सुंदर'],
+ ['😳','embarrassed awkward embarrassing verguenza honte vergonha peinlich aibu'],
+ ['🤬','hate hated odio deteste detestar hasse chuki كره नफरत'],
+ ['🥺','sorry lo siento desole desculpa entschuldigung samahani آسف माफ़'],
+ ['🤡','clown fool idiot stupid tonto idiota imbecile dumm mjinga غبي बेवकूफ'],
+ ['👑','queen king princess reina rey reine roi rainha rei konigin malkia ملكة रानी'],
+ ['👻','ghost ghosted fantasma fantome geist mzimu'],
+ ['⚖️','court judge lawsuit sued lawyer juez tribunal juge avocat advogado richter mahakama محكمة'],
+ ['🚔','police cops arrested policia polizei polisi شرطة पुलिस'],
+ ['💀','dead death died muerte muerto mort morreu tod tot kifo موت मौत']
+];
+const NEG = new Set(['💔','😡','🚫','⚠️','😱','💀','🤬','📉','🤡','😭','🚔']);
+const POS = new Set(['✅','🏆','🥇','😍','🎉','❤️','📈','🎂','⭐','💪']);
+
+const norm = w => w.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f\u064B-\u065F]/g,'').replace(/[^\p{L}\p{M}\p{N}]/gu,'');
+const EMOJI_MAP = new Map();
+for (const [e, words] of EMOJI_RAW) for (const w of words.split(/\s+/)) { const k = norm(w); if (k && !EMOJI_MAP.has(k)) EMOJI_MAP.set(k, e); }
+function emojiFor(word){
+  const k = norm(word); if (!k) return '';
+  if (EMOJI_MAP.has(k)) return EMOJI_MAP.get(k);
+  if (k.length > 3 && k.endsWith('s') && EMOJI_MAP.has(k.slice(0,-1))) return EMOJI_MAP.get(k.slice(0,-1));
+  return '';
+}
+
+const CJK = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0e00-\u0eff\u1000-\u109f\u1780-\u17ff]/;
+const RTL = /[\u0590-\u08FF]/;
+const ENDP = /[.!?;:,…。！？、，]$/;
+const SENT_END = /[.!?。！？]$/;
+
+function buildChunks(words){
+  words = words.filter(w => w.t && w.t.trim()).map(w => ({t:w.t.trim(), s:w.s, e:Math.max(w.e, w.s + 0.05)}));
+  const cjk = CJK.test(words.map(w => w.t).join(''));
+  const maxW = cjk ? 6 : 3, maxC = cjk ? 12 : 22;
+  const groups = []; let cur = [];
+  const flush = () => { if (cur.length) { groups.push(cur); cur = []; } };
+  for (const w of words) {
+    if (cur.length) {
+      const prev = cur[cur.length-1];
+      const chars = cur.map(x => x.t).join(cjk ? '' : ' ').length + w.t.length + 1;
+      if (cur.length >= maxW || chars > maxC || w.s - prev.e > 0.6 || ENDP.test(prev.t)) flush();
+    }
+    cur.push(w);
+  }
+  flush();
+  const chunks = groups.map(g => ({ words:g, start:g[0].s, end:g[g.length-1].e, emoji:'', color:0, cjk }));
+  chunks.forEach((c,i) => {
+    const nx = chunks[i+1];
+    c.end = (nx && nx.start - c.end < 0.5) ? nx.start : c.end + 0.25;
+  });
+  assignEmojis(chunks);
+  return chunks;
+}
+
+function assignEmojis(chunks){
+  let last = -9; const cycle = [0,1,2,0];
+  chunks.forEach((c,i) => {
+    c.emoji = '';
+    let found = '';
+    for (const w of c.words) { found = emojiFor(w.t); if (found) break; }
+    if (found && i - last >= 2) { c.emoji = found; last = i; }
+    const text = c.words.map(w => w.t).join(' ');
+    if (/\d/.test(text) || found === '💰') c.color = 0;
+    else if (NEG.has(found)) c.color = 1;
+    else if (POS.has(found)) c.color = 2;
+    else c.color = cycle[i % 4];
+  });
+}
+
+function retext(chunk, text){
+  const parts = text.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return false;
+  const old = chunk.words;
+  if (parts.length === old.length) { parts.forEach((p,i) => old[i].t = p); }
+  else {
+    const dur = (chunk.end - chunk.start) || 1, step = dur / parts.length;
+    chunk.words = parts.map((p,i) => ({t:p, s:chunk.start + step*i, e:chunk.start + step*(i+1)}));
+  }
+  return true;
+}
+
+const pad = (n,l=2) => String(n).padStart(l,'0');
+function srtTime(t){ const ms = Math.round(t*1000); return `${pad(Math.floor(ms/3600000))}:${pad(Math.floor(ms/60000)%60)}:${pad(Math.floor(ms/1000)%60)},${pad(ms%1000,3)}`; }
+function toSrt(chunks){
+  return chunks.map((c,i) => `${i+1}\n${srtTime(c.start)} --> ${srtTime(c.end)}\n${c.words.map(w=>w.t).join(c.cjk?'':' ')}\n`).join('\n');
+}
+
+/* ---- cuts (silence and filler removal) ---- */
+const FILLERS = new Set(['um','uh','uhm','umm','erm','hmm','mhm']);
+function mergeCuts(cuts){
+  cuts = cuts.filter(c => c[1] - c[0] > 0.05).sort((a,b) => a[0]-b[0]);
+  const out = [];
+  for (const c of cuts) {
+    const l = out[out.length-1];
+    if (l && c[0] <= l[1] + 0.02) l[1] = Math.max(l[1], c[1]); else out.push([c[0], c[1]]);
+  }
+  return out;
+}
+function computeCuts(chunks, dur, o){
+  const words = chunks.flatMap(c => c.words).slice().sort((a,b) => a.s - b.s);
+  if (!words.length) return [];
+  const cuts = [], padS = o.pad ?? 0.1;
+  if (o.silence) {
+    if (words[0].s - padS > 0.15) cuts.push([0, words[0].s - padS]);
+    for (let i = 0; i < words.length - 1; i++) {
+      const gap = words[i+1].s - words[i].e;
+      if (gap > o.thr) cuts.push([words[i].e + padS, words[i+1].s - padS]);
+    }
+    const end = words[words.length-1].e;
+    if (dur - end > o.thr) cuts.push([end + padS, dur]);
+  }
+  if (o.fillers) for (const w of words) if (FILLERS.has(norm(w.t))) cuts.push([w.s, w.e]);
+  return mergeCuts(cuts);
+}
+function keptLength(cuts, range){
+  let total = range[1] - range[0];
+  for (const c of cuts) { const a = Math.max(c[0], range[0]), b = Math.min(c[1], range[1]); if (b > a) total -= (b - a); }
+  return Math.max(0, total);
+}
+function cutAt(cuts, t){ for (const c of cuts) if (t >= c[0] && t < c[1]) return c; return null; }
+
+/* ---- zoom ---- */
+function zoomTargets(chunks, mode, zmax){
+  const z = zmax / 100;
+  return chunks.map((c,i) => {
+    if (mode === 'push') return i % 2 === 0 ? [1, z] : [z, 1];
+    const target = (i % 2 === 1 || c.emoji) ? z : 1;
+    const prev = i > 0 ? ((chunks[i-1] && (i-1) % 2 === 1 || (chunks[i-1] && chunks[i-1].emoji)) ? z : 1) : 1;
+    return [prev, target];
+  });
+}
+function zoomAt(t, chunks, zt, mode){
+  let i = -1; for (let k = 0; k < chunks.length; k++) { if (chunks[k].start <= t) i = k; else break; }
+  if (i < 0) return 1;
+  const c = chunks[i], [a,b] = zt[i];
+  if (mode === 'push') { const p = Math.min(1, Math.max(0, (t - c.start) / Math.max(0.3, c.end - c.start))); return a + (b - a) * p; }
+  const p = Math.min(1, Math.max(0, (t - c.start) / 0.18)), e = 1 - Math.pow(1 - p, 3);
+  return a + (b - a) * e;
+}
+
+/* ---- post text ---- */
+const STOP_RAW = `the a an and or but if then so of to in on at for with from by as is are was were be been being it its this that these those you he she we they me him her us them my your his our their not yes do does did have has had will would can could should just very really about into out up down over than too also there here what when where who how why which while because dont cant wont didnt doesnt isnt wasnt like get got going gonna want know think said says say told tell then them thing things nobody never always every everyone everything something someone anyone still even after before again other their been made make many much more most some only back well came come went look looked take took give gave need needed right actually literally basically people
+el la los las un una unos unas y o pero que de del al en con por para como es son era fue ser mi tu su se lo le les si mas muy ya yo nosotros ellos ella esto eso
+le la les un une des et ou mais que de du au aux en avec pour comme est sont etait je il elle nous vous ils elles ce cet cette ne pas plus tres
+o a os as um uma uns umas e ou mas que de do da dos das no na nos nas em com por para como sao eu ele ela eles nao mais muito
+der die das ein eine und oder aber dass von zu im mit fur wie ist sind war ich du er sie wir ihr nicht mehr sehr auch
+na ya wa kwa ni la za katika hii huu hiyo kama lakini au sana pia`;
+const STOP = new Set(STOP_RAW.split(/\s+/).map(norm).filter(Boolean));
+function keywords(text, n = 8){
+  const freq = new Map(), first = new Map(); let idx = 0;
+  for (const raw of text.split(/\s+/)) {
+    const w = norm(raw); idx++;
+    if (w.length < 4 || STOP.has(w) || /^\d+$/.test(w)) continue;
+    freq.set(w, (freq.get(w) || 0) + 1); if (!first.has(w)) first.set(w, idx);
+  }
+  return [...freq.keys()].sort((a,b) => (freq.get(b) - freq.get(a)) || (first.get(a) - first.get(b))).slice(0, n);
+}
+function looksEnglish(text){
+  const ws = text.toLowerCase().split(/\s+/).filter(Boolean); if (ws.length < 5) return false;
+  const ascii = (text.match(/[a-z]/gi) || []).length / Math.max(1, (text.match(/\p{L}/gu) || []).length);
+  const en = new Set(['the','and','to','of','a','i','you','it','that','was','for','in','is','my','me','she','he','we','they','with','on','this','but','not']);
+  const hit = ws.filter(w => en.has(w.replace(/[^a-z]/g,''))).length / ws.length;
+  return ascii > 0.97 && hit > 0.15;
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+function makePost(text, platform, english){
+  const clean = text.split(/\s+/).filter(w => !FILLERS.has(norm(w))).join(' ').trim();
+  const sents = clean.split(/(?<=[.!?。！？])\s*/).map(s => s.trim()).filter(Boolean);
+  const kws = keywords(clean, 10);
+  const trunc = (s, n) => s.length <= n ? s : s.slice(0, n).replace(/\s+\S*$/, '') + '…';
+  const titles = [];
+  if (sents[0]) titles.push(trunc(sents[0], 70));
+  const w9 = clean.split(/\s+/).slice(0, 9).join(' ');
+  if (w9 && !titles.includes(w9 + '…')) titles.push(w9 + '…');
+  const top = kws.slice(0, 3).sort((a,b) => b.length - a.length)[0];
+  if (english && top) { titles.push(`The truth about ${top} 👀`); titles.push(`${cap(top)} story you won't believe`); }
+  let body = sents.slice(0, 3).join(' ');
+  body = trunc(body, 220);
+  const generic = { yt:['#shorts'], tt:['#fyp','#foryou','#viral'], ig:['#reels','#explore','#viral','#trending'] }[platform];
+  const nk = { yt:3, tt:4, ig:6 }[platform];
+  const tags = [...kws.slice(0, nk).map(k => '#' + k), ...generic];
+  const desc = body + (english ? '\n\nFollow for more.' : '');
+  return { titles: titles.slice(0, 4), description: desc, hashtags: tags };
+}
+
+/* ---- long video to shorts ---- */
+const HOOK = new Set('how why secret never stop nobody biggest crazy story truth mistake worst best free easy fast'.split(' '));
+function findShorts(chunks, target, count = 5){
+  const n = chunks.length, minL = target * 0.55, cands = [];
+  const lastT = c => c.words[c.words.length-1].t;
+  const sentStart = i => i === 0 || SENT_END.test(lastT(chunks[i-1])) || chunks[i].start - chunks[i-1].end > 0.7;
+  const sentEnd = j => SENT_END.test(lastT(chunks[j])) || j === n-1 || chunks[j+1].start - chunks[j].end > 0.7;
+  for (let i = 0; i < n; i++) {
+    if (!sentStart(i)) continue;
+    const c0 = chunks[i];
+    const hook = (c0.words.some(w => HOOK.has(norm(w.t))) ? 3 : 0) + (/\?/.test(c0.words.map(w=>w.t).join(' ')) ? 2 : 0);
+    for (let j = i; j < n; j++) {
+      const L = chunks[j].end - c0.start;
+      if (L > target) break;
+      if (L < minL || !sentEnd(j)) continue;
+      let digits = 0, emo = 0, punch = 0, gaps = 0;
+      for (let k = i; k <= j; k++) {
+        const t = chunks[k].words.map(w => w.t).join(' ');
+        if (/\d/.test(t)) digits++; if (chunks[k].emoji) emo++;
+        punch += (t.match(/[!?]/g) || []).length;
+        if (k > i && chunks[k].start - chunks[k-1].end > 0.8) gaps++;
+      }
+      const score = hook + Math.min(3, digits) + emo * 0.5 + Math.min(4, punch * 0.4) + 2 * (1 - Math.abs(L - target * 0.85) / target) - gaps * 0.5;
+      cands.push({ i, j, start:c0.start, end:chunks[j].end + 0.2, score, text:c0.words.map(w => w.t).join(' ') });
+    }
+  }
+  cands.sort((a,b) => b.score - a.score);
+  const out = [];
+  for (const c of cands) { if (out.length >= count) break; if (out.every(o => c.end <= o.start || c.start >= o.end)) out.push(c); }
+  return out.sort((a,b) => a.start - b.start);
+}
+// ==LOGIC-END==
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+const video = $('v'), canvas = $('canvas'), ctx = canvas.getContext('2d'), strip = $('strip'), sctx = strip.getContext('2d');
+const S = { file:null, url:null, audio:null, audioKey:'', chunks:[], busy:false, exporting:false, worker:null,
+  style:'story', cuts:[], range:[0,0], zt:[], sfx:[], sfxI:0, sfxEv:[], music:null, musicOff:0, mSrc:null, lastT:0, faded:false,
+  finish:null, plat:'yt', slen:60 };
+const CF = {};
+
+// language list
+$('lang').innerHTML = '<option value="auto">Auto detect</option>' +
+  LANGS.map(l => `<option value="${l}">${l.replace(/\b\w/g, c => c.toUpperCase())}</option>`).join('');
+
+const fmt = t => `${Math.floor(t/60)}:${pad(Math.floor(t%60))}`;
+const fmt1 = t => t.toFixed(1) + ' s';
+function setStatus(msg, err){ const s = $('status'); s.textContent = msg; s.classList.toggle('err', !!err); }
+function setBar(el, fill, p){ el.style.display = p == null ? 'none' : 'block'; if (p != null) fill.style.width = Math.round(p*100) + '%'; }
+
+/* tabs */
+function openTab(name){
+  document.querySelectorAll('#rail button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+  document.querySelectorAll('#tools section').forEach(s => s.classList.toggle('on', s.dataset.panel === name));
+}
+$('rail').addEventListener('click', e => { const b = e.target.closest('button'); if (b) openTab(b.dataset.tab); });
+$('topExport').addEventListener('click', () => openTab('export'));
+
+/* settings */
+function readCfg(){
+  CF.size = +$('size').value/100; CF.pos = +$('pos').value/100;
+  const allColors = [$('c1').value, $('c2').value, $('c3').value];
+  const on = [$('c1on').checked, $('c2on').checked, $('c3on').checked];
+  const active = allColors.filter((_,i) => on[i]);
+  CF.useColors = $('useColors').checked && active.length > 0;
+  CF.colors = CF.useColors ? (active.length === 3 ? active : [0,1,2].map(i => active[i % active.length])) : ['#fff','#fff','#fff'];
+  CF.emoji = $('useEmoji').checked; CF.upper = $('upper').checked; CF.style = S.style;
+  CF.silence = $('silence').checked; CF.thr = +$('thr').value/100; CF.fillers = $('fillers').checked;
+  CF.zoom = $('zoomOn').checked; CF.zmode = $('zmode').value; CF.zmax = +$('zmax').value;
+  CF.sfxTrig = $('sfxTrig').value;
+  $('thrv').textContent = CF.thr.toFixed(2); $('zmaxv').textContent = CF.zmax;
+  $('mvolv').textContent = $('mvol').value; $('svolv').textContent = $('svol').value; $('vvolv').textContent = $('vvol').value;
+}
+function refreshEdit(){
+  readCfg();
+  const dur = video.duration || 0;
+  S.cuts = (S.chunks.length && dur) ? computeCuts(S.chunks, dur, { silence:CF.silence, thr:CF.thr, fillers:CF.fillers, pad:0.1 }) : [];
+  S.zt = zoomTargets(S.chunks, CF.zmode, CF.zmax);
+  S.sfxEv = buildSfx();
+  if (actx) { vidGain.gain.value = +$('vvol').value/100; sfxGain.gain.value = +$('svol').value/100; if (!S.exporting) musicGain.gain.value = +$('mvol').value/100; }
+  if (dur) {
+    const full = S.range[1] - S.range[0], kept = keptLength(S.cuts, S.range);
+    $('cutsum').innerHTML = S.cuts.length ? `Removes <b>${fmt1(full - kept)}</b> in <b>${S.cuts.length}</b> cuts. Final length <b>${fmt1(kept)}</b>.` : `No cuts. Final length <b>${fmt1(kept)}</b>.`;
+    $('expsum').innerHTML = `Final length <b>${fmt1(kept)}</b>. Export takes about the same time.`;
+  }
+}
+$('tools').addEventListener('input', e => { if (e.target.closest('.ck') || e.target.type === 'file') return; refreshEdit(); });
+$('tools').addEventListener('change', e => { if (e.target.closest('.ck') || e.target.type === 'file') return; refreshEdit(); });
+$('styleChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  document.querySelectorAll('#styleChips .chip').forEach(o => o.setAttribute('aria-pressed','false'));
+  c.setAttribute('aria-pressed','true'); S.style = c.dataset.s; readCfg();
+});
+$('rs').addEventListener('change', () => setRange(+$('rs').value, +$('re').value));
+$('re').addEventListener('change', () => setRange(+$('rs').value, +$('re').value));
+$('rreset').addEventListener('click', () => setRange(0, video.duration || 0));
+function setRange(a, b){
+  const d = video.duration || 0;
+  a = Math.max(0, Math.min(a, d)); b = Math.max(0, Math.min(b || d, d));
+  if (b - a < 1) { a = 0; b = d; }
+  S.range = [a, b]; $('rs').value = a.toFixed(1); $('re').value = b.toFixed(1); refreshEdit();
+}
+
+/* load video */
+const drop = $('drop'), fileIn = $('file');
+drop.addEventListener('click', () => fileIn.click());
+drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } });
+fileIn.addEventListener('change', () => fileIn.files[0] && loadFile(fileIn.files[0]));
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+
+async function loadFile(f){
+  if (!f.type.startsWith('video/')) { setStatus('That is not a video file. Choose an MP4, MOV, or WebM.', true); return; }
+  if (S.url) URL.revokeObjectURL(S.url);
+  S.file = f; S.url = URL.createObjectURL(f); S.audio = null; S.chunks = []; S.cuts = []; renderList();
+  video.src = S.url;
+  try { await new Promise((res, rej) => { video.onloadeddata = res; video.onerror = () => rej(new Error('decode')); }); }
+  catch { setStatus('This browser cannot read that video. Try an MP4 (H.264).', true); return; }
+  sizeCanvas();
+  await document.fonts.load('900 40px Montserrat').catch(()=>{});
+  await document.fonts.load('800 40px "Baloo 2"').catch(()=>{});
+  await document.fonts.load('italic 600 40px "Playfair Display"').catch(()=>{});
+  drop.style.display = 'none'; canvas.style.display = 'block'; $('ctrl').style.display = 'flex';
+  $('gen').disabled = false; $('export').disabled = true; $('dl').style.display = 'none';
+  S.range = [0, video.duration]; $('rs').value = '0'; $('re').value = video.duration.toFixed(1);
+  const d = video.duration;
+  setStatus(d > 300 ? `Video is ${fmt(d)} long. Long videos can be slow. Use the Shorts tab to find the best parts.` : 'Video loaded. Pick the language and press Generate captions.');
+  video.currentTime = 0.01; refreshEdit();
+}
+function sizeCanvas(){
+  let w = video.videoWidth, h = video.videoHeight; const m = Math.max(w,h);
+  if (m > 1920) { const k = 1920/m; w = Math.round(w*k); h = Math.round(h*k); }
+  w -= w % 2; h -= h % 2; canvas.width = w; canvas.height = h;
+}
+
+/* audio for transcription: 16 kHz mono */
+async function getAudio(){
+  if (S.audio && S.audioKey === S.file.name + S.file.size) return S.audio;
+  const buf = await S.file.arrayBuffer();
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ac = new AC({ sampleRate:16000 });
+  const decoded = await ac.decodeAudioData(buf);
+  let out;
+  if (decoded.numberOfChannels > 1) {
+    const a = decoded.getChannelData(0), b = decoded.getChannelData(1);
+    out = new Float32Array(a.length); for (let i = 0; i < a.length; i++) out[i] = (a[i] + b[i]) / 2;
+  } else out = decoded.getChannelData(0).slice();
+  ac.close();
+  S.audio = out; S.audioKey = S.file.name + S.file.size; return out;
+}
+
+/* whisper worker */
+const WORKER_SRC = `
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+env.allowLocalModels = false;
+const cache = {};
+self.onmessage = async (e) => {
+  const { model, audio, opts } = e.data;
+  try {
+    if (!cache[model]) {
+      const files = {};
+      cache[model] = await pipeline('automatic-speech-recognition', model, {
+        progress_callback: (p) => {
+          if (p.status === 'progress' && p.file) {
+            files[p.file] = { l:p.loaded, t:p.total };
+            let L = 0, T = 0; for (const k in files) { L += files[k].l; T += files[k].t; }
+            self.postMessage({ type:'download', frac: T ? L/T : 0 });
+          }
+        }
+      });
+    }
+    self.postMessage({ type:'listening' });
+    const out = await cache[model](audio, opts);
+    self.postMessage({ type:'done', out });
+  } catch (err) { self.postMessage({ type:'error', msg: String((err && err.message) || err) }); }
+};`;
+function getWorker(){
+  if (!S.worker) S.worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'})), { type:'module' });
+  return S.worker;
+}
+
+$('gen').addEventListener('click', async () => {
+  if (S.busy || !S.file) return;
+  S.busy = true; $('gen').disabled = true; $('export').disabled = true;
+  const bar = $('bar'), fill = $('barfill');
+  try {
+    setStatus('Reading the audio...'); setBar(bar, fill, 0.02);
+    const audio = await getAudio();
+    if (audio.length < 1600) throw new Error('No audio found in this video.');
+    const lang = $('lang').value;
+    const opts = { return_timestamps:'word', chunk_length_s:30, stride_length_s:5, task: $('translate').checked ? 'translate' : 'transcribe' };
+    if (lang !== 'auto') opts.language = lang;
+    const w = getWorker();
+    const out = await new Promise((resolve, reject) => {
+      w.onmessage = e => {
+        const m = e.data;
+        if (m.type === 'download') { setStatus(`Downloading the speech model: ${Math.round(m.frac*100)}% (first time only)`); setBar(bar, fill, m.frac*0.6); }
+        else if (m.type === 'listening') { setStatus('Listening to your video. This can take a minute. The page stays usable.'); setBar(bar, fill, 0.7); }
+        else if (m.type === 'done') resolve(m.out);
+        else if (m.type === 'error') reject(new Error(m.msg));
+      };
+      w.onerror = () => reject(new Error('The speech engine could not start. Use Chrome, Edge, or Safari, and check your internet connection.'));
+      w.postMessage({ model:$('model').value, audio, opts });
+    });
+    const words = (out.chunks || []).map(c => ({ t:c.text, s:c.timestamp[0] ?? 0, e:c.timestamp[1] ?? ((c.timestamp[0] ?? 0) + 0.4) }));
+    if (!words.length) throw new Error('No speech was found. Check the language setting and try again.');
+    S.chunks = buildChunks(words);
+    renderList(); setBar(bar, fill, null);
+    setStatus(`Done. ${S.chunks.length} captions. Press play to preview, then use the other tabs.`);
+    $('export').disabled = false; $('resuggest').disabled = false; $('srt').disabled = false;
+    $('gen').textContent = 'Regenerate captions';
+    refreshEdit(); video.currentTime = S.chunks[0].start + 0.01;
+  } catch (err) {
+    setBar(bar, fill, null); setStatus(err.message || 'Something went wrong.', true);
+  } finally { S.busy = false; $('gen').disabled = false; }
+});
+
+/* ---------- drawing ---------- */
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+const FONT = 'Montserrat,"Noto Sans","Segoe UI",Arial,sans-serif';
+const EMO = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const range = (a,b) => Array.from({length:b-a}, (_,i) => a+i);
+const weightOf = st => st === 'clean' ? 700 : st === 'minimal' ? 800 : 900;
+const SERIF = '"Playfair Display",Georgia,serif';
+
+/* per-style emoji animation: returns {scale, alpha, rot, dy} for u = seconds since caption start */
+const clamp01 = x => Math.max(0, Math.min(1, x));
+function easeOutBack(x){ const c1 = 1.70158, c3 = c1 + 1; return 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2); }
+function emojiFX(style, u){
+  let scale = 1, alpha = 1, rot = 0, dy = 0;
+  if (style === 'story' || style === 'box') {
+    const p = clamp01(u/0.22); scale = p < 1 ? 0.3 + 0.9*easeOutBack(p) : 1;
+  } else if (style === 'pop') {
+    const p = clamp01(u/0.16);
+    scale = p < 1 ? 0.2 + 1.3*p*p : 1.3 - 0.3*clamp01((u-0.16)/0.12);
+  } else if (style === 'clean' || style === 'minimal') {
+    const p = clamp01(u/0.3); alpha = p; scale = 0.85 + 0.15*p;
+  } else if (style === 'neon') {
+    scale = 0.9 + 0.1*Math.min(1, u/0.2);
+    alpha = u < 0.35 ? (Math.sin(u*45) > 0 ? 1 : 0.3) : 1;
+  } else if (style === 'outline') {
+    scale = clamp01(u/0.12);
+  } else if (style === 'block') {
+    const p = clamp01(u/0.25); alpha = p; dy = (1-p)*0.3;
+  } else if (style === 'elegant') {
+    alpha = clamp01(u/0.45);
+  } else if (style === 'redline') {
+    const p = clamp01(u/0.12);
+    scale = p < 1 ? 0.3 + 1.6*p : 1.9 - 0.9*clamp01((u-0.12)/0.1);
+    rot = u < 0.2 ? Math.sin(u*60) * 0.12 * (1 - clamp01(u/0.2)) : 0;
+  } else {
+    scale = 0.4 + 0.6*easeOutBack(clamp01(u/0.2));
+  }
+  return { scale, alpha, rot, dy };
+}
+function drawEmojiAt(cx, cy, emoji, fs, style, u){
+  const fx = emojiFX(style, u);
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, fx.alpha));
+  ctx.translate(cx, cy + fx.dy*fs);
+  ctx.rotate(fx.rot);
+  ctx.scale(fx.scale, fx.scale);
+  ctx.font = `${fs}px ${EMO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+  ctx.fillText(emoji, 0, 0);
+  ctx.restore();
+}
+
+function drawElegant(c, t){
+  const W = canvas.width, H = canvas.height;
+  let fs = W * 0.062 * CF.size, gap = fs * 0.22;
+  const words = c.words.map(w => w.t.toLowerCase());
+  const fontFor = i => i % 2 === 0 ? `italic 600 ${fs}px ${SERIF}` : `500 ${fs*0.92}px ${FONT}`;
+  const widthsAt = () => words.map((w,i) => { ctx.font = fontFor(i); return ctx.measureText(w).width; });
+  let w = widthsAt();
+  const n = words.length;
+  const idx = n >= 4 ? [range(0, Math.ceil(n/2)), range(Math.ceil(n/2), n)] : [range(0,n)];
+  let lw = idx.map(l => l.reduce((a,i) => a + w[i], 0) + gap*(l.length-1));
+  let maxW = Math.max(...lw);
+  if (maxW > W*0.88) { fs *= (W*0.88)/maxW; gap = fs*0.22; w = widthsAt(); lw = idx.map(l => l.reduce((a,i) => a + w[i], 0) + gap*(l.length-1)); }
+  let ai = 0; c.words.forEach((wd,i) => { if (t >= wd.s - 0.02) ai = i; });
+  const lineH = fs*1.3, showE = CF.emoji && c.emoji;
+  const blockH = idx.length*lineH + (showE ? fs*1.2 : 0);
+  const top = H*CF.pos - blockH/2;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  idx.forEach((line, li) => {
+    const y = top + lineH*(li + 0.5); let x = (W - lw[li]) / 2;
+    line.forEach(i => {
+      ctx.font = fontFor(i);
+      const word = words[i], wd = w[i];
+      ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = fs*0.22; ctx.shadowOffsetY = fs*0.04;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(word, x, y);
+      ctx.shadowColor = 'transparent';
+      x += wd + gap;
+    });
+  });
+  if (showE) {
+    drawEmojiAt(W/2, top + idx.length*lineH + fs*0.55, c.emoji, fs*1.05, 'elegant', Math.max(0, t - c.start));
+  }
+}
+
+function layout(texts, fs, st, cjk){
+  ctx.font = `${weightOf(st)} ${fs}px ${FONT}`;
+  const gap = cjk ? fs*0.06 : fs*0.28;
+  const widths = texts.map(t => ctx.measureText(t).width);
+  const n = texts.length; let idx;
+  const total = widths.reduce((a,b) => a+b, 0) + gap*(n-1);
+  if (n >= 3) { const k = Math.ceil(n/2); idx = [range(0,k), range(k,n)]; }
+  else if (n === 2 && total > canvas.width*0.8) idx = [[0],[1]];
+  else idx = [range(0,n)];
+  const lw = idx.map(l => l.reduce((a,i) => a + widths[i], 0) + gap*(l.length-1));
+  return { idx, widths, gap, lw, maxW:Math.max(...lw) };
+}
+
+function drawRedline(c, t){
+  const W = canvas.width, H = canvas.height;
+  const BALOO = '"Baloo 2","Comic Sans MS",sans-serif';
+  const isNum = w => /\d/.test(w);
+  const small = c.words.filter(w => !isNum(w.t)).map(w => w.t);
+  const big = c.words.filter(w => isNum(w.t)).map(w => w.t);
+  let fsS = W * 0.052 * CF.size, fsB = W * 0.09 * CF.size;
+  const measure = (arr, font, fs) => { ctx.font = `${font.w} ${fs}px ${font.f}`; return arr.reduce((a,w) => a + ctx.measureText(w + ' ').width, 0); };
+  let wS = measure(small, {w:700,f:BALOO}, fsS), wB = measure(big, {w:900,f:FONT}, fsB);
+  if (Math.max(wS, wB) > W*0.92) { const k = (W*0.92) / Math.max(wS, wB); fsS *= k; fsB *= k; wS *= k; wB *= k; }
+  let ai = 0; c.words.forEach((w,i) => { if (t >= w.s - 0.02) ai = i; });
+  const lines = []; if (small.length) lines.push({ words:small, fs:fsS, font:BALOO, fw:700, col: CF.useColors ? '#ED1C24' : '#fff', w:wS });
+  if (big.length) lines.push({ words:big, fs:fsB, font:FONT, fw:900, col:'#fff', w:wB, stroke:true });
+  const showE = CF.emoji && c.emoji;
+  const lineH = (l) => l.fs * 1.2;
+  const blockH = lines.reduce((a,l) => a + lineH(l), 0) + (showE ? fsB*1.1 : 0);
+  const top = H*CF.pos - blockH/2;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.lineJoin = 'round';
+  let y = top;
+  lines.forEach(l => {
+    y += lineH(l)/2;
+    ctx.font = `${l.fw} ${l.fs}px ${l.font}`;
+    let x = (W - l.w) / 2;
+    l.words.forEach(w => {
+      if (l.stroke) { ctx.lineWidth = l.fs*0.16; ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.strokeText(w, x, y); }
+      ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = l.fs*0.15; ctx.shadowOffsetY = l.fs*0.05;
+      ctx.fillStyle = l.col; ctx.fillText(w, x, y);
+      ctx.shadowColor = 'transparent';
+      x += ctx.measureText(w + ' ').width;
+    });
+    y += lineH(l)/2;
+  });
+  if (showE) {
+    drawEmojiAt(W/2, top + blockH - fsB*0.5, c.emoji, fsB*1.3, 'redline', Math.max(0, t - c.start));
+  }
+}
+
+function drawCaption(c, t){
+  if (CF.style === 'elegant') return drawElegant(c, t);
+  if (CF.style === 'redline') return drawRedline(c, t);
+  const W = canvas.width, H = canvas.height, st = CF.style;
+  let fs = W * 0.07 * CF.size * (st === 'clean' ? 0.85 : 1);
+  const texts = c.words.map(w => CF.upper ? w.t.toUpperCase() : w.t);
+  let L = layout(texts, fs, st, c.cjk);
+  if (L.maxW > W*0.9) { fs *= (W*0.9) / L.maxW; L = layout(texts, fs, st, c.cjk); }
+  const rtl = RTL.test(texts.join(''));
+  let ai = 0; c.words.forEach((w,i) => { if (t >= w.s - 0.02) ai = i; });
+  const lineH = fs * 1.15, showE = CF.emoji && c.emoji;
+  const blockH = L.idx.length*lineH + (showE ? fs*1.3 : 0);
+  const top = H*CF.pos - blockH/2;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
+  ctx.font = `${weightOf(st)} ${fs}px ${FONT}`;
+  const col = CF.colors[c.color] || '#FFE600';
+
+  L.idx.forEach((line, li) => {
+    const order = rtl ? line.slice().reverse() : line;
+    const y = top + lineH*(li + 0.5);
+    const x0 = (W - L.lw[li]) / 2;
+    if (st === 'block') { ctx.fillStyle = 'rgba(0,0,0,.78)'; rr(x0 - fs*0.35, y - fs*0.6, L.lw[li] + fs*0.7, fs*1.2, fs*0.25); ctx.fill(); }
+    let x = x0;
+    order.forEach(i => {
+      const word = texts[i], wd = L.widths[i], active = i === ai;
+      const scale = (st === 'pop' && active) ? 1.18 : 1;
+      ctx.save(); ctx.translate(x + wd/2, y); ctx.scale(scale, scale);
+      const px = -wd/2;
+      if (st === 'box' && active) {
+        ctx.fillStyle = col; rr(px - fs*0.14, -fs*0.56, wd + fs*0.28, fs*1.12, fs*0.2); ctx.fill();
+        ctx.fillStyle = '#111'; ctx.fillText(word, px, 0);
+      } else if (st === 'clean') {
+        ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = fs*0.25; ctx.shadowOffsetY = fs*0.05;
+        ctx.fillStyle = '#fff'; ctx.fillText(word, px, 0);
+        ctx.shadowColor = 'transparent';
+      } else if (st === 'neon') {
+        ctx.shadowColor = active ? col : 'rgba(255,255,255,.6)'; ctx.shadowBlur = fs*(active ? 0.6 : 0.25);
+        ctx.fillStyle = active ? col : '#fff'; ctx.fillText(word, px, 0); ctx.fillText(word, px, 0);
+      } else if (st === 'outline') {
+        ctx.lineWidth = fs*0.07;
+        if (active) { ctx.strokeStyle = '#000'; ctx.lineWidth = fs*0.2; ctx.strokeText(word, px, 0); ctx.fillStyle = col; ctx.fillText(word, px, 0); }
+        else { ctx.strokeStyle = '#fff'; ctx.strokeText(word, px, 0); }
+      } else if (st === 'block') {
+        ctx.fillStyle = active ? col : '#fff'; ctx.fillText(word, px, 0);
+      } else if (st === 'minimal') {
+        ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = fs*0.18; ctx.shadowOffsetY = fs*0.06;
+        ctx.fillStyle = active ? col : '#fff'; ctx.fillText(word, px, 0);
+        ctx.shadowColor = 'transparent';
+      } else {
+        ctx.lineWidth = fs*0.24; ctx.strokeStyle = '#000';
+        ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowOffsetY = fs*0.08; ctx.shadowBlur = 0;
+        ctx.strokeText(word, px, 0);
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = active ? col : '#fff'; ctx.fillText(word, px, 0);
+      }
+      ctx.restore();
+      x += wd + L.gap;
+    });
+  });
+  if (showE) {
+    drawEmojiAt(W/2, top + L.idx.length*lineH + fs*0.6, c.emoji, fs*1.1, st, Math.max(0, t - c.start));
+  }
+}
+
+function drawStrip(t){
+  const w = strip.width, h = strip.height, d = video.duration || 1;
+  sctx.clearRect(0,0,w,h); sctx.fillStyle = '#1d1a33'; sctx.fillRect(0,0,w,h);
+  const X = s => s / d * w;
+  sctx.fillStyle = '#4a3fa8'; sctx.fillRect(X(S.range[0]), 0, X(S.range[1]) - X(S.range[0]), h);
+  sctx.fillStyle = '#8a86b8'; S.chunks.forEach(c => sctx.fillRect(X(c.start), h-5, Math.max(1, X(c.end) - X(c.start) - 1), 5));
+  sctx.fillStyle = 'rgba(255,92,122,.85)'; S.cuts.forEach(c => sctx.fillRect(X(c[0]), 0, Math.max(1, X(c[1]) - X(c[0])), h-5));
+  sctx.fillStyle = '#fff'; sctx.fillRect(X(t) - 1, 0, 2, h);
+}
+
+let seeking = false, lastIdx = -1;
+function frame(){
+  if (video.videoWidth) {
+    let t = video.currentTime;
+    const playing = !video.paused && !video.seeking;
+    if (playing) {
+      if (t >= S.range[1] - 0.03 || video.ended) {
+        if (S.exporting) finishExport(); else video.pause();
+      } else {
+        const c = CF.silence || CF.fillers ? cutAt(S.cuts, t) : null;
+        if (c) { video.currentTime = c[1]; t = c[1]; }
+      }
+      if (Math.abs(t - S.lastT) < 0.25) for (const e of S.sfxEv) if (e > S.lastT && e <= t) playSfx();
+      if (S.music && actx && !S.faded && S.range[1] - t < 1.2) {
+        const rem = Math.max(0.1, S.range[1] - t); const now = actx.currentTime;
+        musicGain.gain.cancelScheduledValues(now); musicGain.gain.setValueAtTime(musicGain.gain.value, now); musicGain.gain.linearRampToValueAtTime(0, now + rem); S.faded = true;
+      }
+    }
+    S.lastT = t;
+    const z = (CF.zoom && S.chunks.length) ? zoomAt(t, S.chunks, S.zt, CF.zmode) : 1;
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (z > 1.001) ctx.drawImage(video, (vw - vw/z)/2, (vh - vh/z)/2, vw/z, vh/z, 0, 0, canvas.width, canvas.height);
+    else ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const i = S.chunks.findIndex(c => t >= c.start && t < c.end);
+    if (i >= 0) drawCaption(S.chunks[i], t);
+    if (i !== lastIdx) { lastIdx = i; markRow(i); }
+    if (!seeking) $('seek').value = video.duration ? Math.round(t / video.duration * 1000) : 0;
+    $('time').textContent = `${fmt(t)} / ${fmt(video.duration || 0)}`;
+    drawStrip(t);
+    if (S.exporting) setBar($('ebar'), $('ebarfill'), Math.min(1, Math.max(0, (t - S.range[0]) / (S.range[1] - S.range[0]))));
+  }
+  requestAnimationFrame(frame);
+}
+readCfg(); requestAnimationFrame(frame);
+
+/* ---------- audio graph ---------- */
+let actx = null, vidGain, musicGain, sfxGain, spk, recDest;
+function ensureAudio(){
+  if (actx) return;
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  video.muted = false;
+  const src = actx.createMediaElementSource(video);
+  vidGain = actx.createGain(); musicGain = actx.createGain(); sfxGain = actx.createGain();
+  spk = actx.createGain(); recDest = actx.createMediaStreamDestination();
+  src.connect(vidGain);
+  [vidGain, musicGain, sfxGain].forEach(g => { g.connect(spk); g.connect(recDest); });
+  spk.connect(actx.destination);
+  vidGain.gain.value = +$('vvol').value/100; sfxGain.gain.value = +$('svol').value/100; musicGain.gain.value = +$('mvol').value/100;
+}
+async function decodeFile(f){ ensureAudio(); const buf = await f.arrayBuffer(); return await actx.decodeAudioData(buf); }
+$('musicFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { S.music = { name:f.name, buf: await decodeFile(f) }; $('musicName').textContent = `Music: ${f.name}. It loops and fades out at the end.`; }
+  catch { $('musicName').textContent = 'Could not read that audio file. Try an MP3 or WAV.'; }
+});
+$('sfxFile').addEventListener('change', async e => {
+  const fs = [...e.target.files]; if (!fs.length) return;
+  try { S.sfx = []; for (const f of fs) S.sfx.push({ name:f.name, buf: await decodeFile(f) }); $('sfxName').textContent = `Effects: ${S.sfx.map(s => s.name).join(', ')}`; refreshEdit(); }
+  catch { $('sfxName').textContent = 'Could not read one of the audio files. Try MP3 or WAV.'; }
+});
+$('clearAudio').addEventListener('click', () => {
+  stopMusic(); S.music = null; S.sfx = []; S.sfxEv = []; $('musicFile').value = ''; $('sfxFile').value = '';
+  $('musicName').textContent = 'No music added. It loops and fades out at the end.'; $('sfxName').textContent = 'No effects added. With several files, they play in turn.';
+});
+$('vvol').addEventListener('input', () => { ensureAudio(); refreshEdit(); });
+function buildSfx(){
+  if (!S.sfx.length || CF.sfxTrig === 'none') return [];
+  const ev = [];
+  S.chunks.forEach((c,i) => {
+    const hit = CF.sfxTrig === 'emoji' ? !!c.emoji : CF.sfxTrig === 'zoom' ? (i % 2 === 1 || !!c.emoji) : true;
+    if (hit && c.start >= S.range[0] && c.start < S.range[1]) ev.push(c.start);
+  });
+  return ev;
+}
+function playSfx(){
+  if (!actx || !S.sfx.length) return;
+  const b = S.sfx[S.sfxI++ % S.sfx.length];
+  const src = actx.createBufferSource(); src.buffer = b.buf; src.connect(sfxGain); src.start();
+}
+function startMusic(){
+  if (!S.music || !actx) return; stopMusic();
+  const src = actx.createBufferSource(); src.buffer = S.music.buf; src.loop = true; src.connect(musicGain);
+  const off = S.musicOff % S.music.buf.duration;
+  musicGain.gain.cancelScheduledValues(0); musicGain.gain.value = +$('mvol').value/100; S.faded = false;
+  src.start(0, off); S.mSrc = src; S.mCtx = actx.currentTime; S.mOff = off;
+}
+function stopMusic(){
+  if (S.mSrc) { S.musicOff = S.mOff + (actx.currentTime - S.mCtx); try { S.mSrc.stop(); } catch {} S.mSrc = null; }
+}
+
+/* ---------- player ---------- */
+$('play').addEventListener('click', togglePlay);
+canvas.addEventListener('click', togglePlay);
+function togglePlay(){
+  if (S.exporting) return;
+  if (video.paused) {
+    const t = video.currentTime;
+    if (t < S.range[0] - 0.05 || t >= S.range[1] - 0.05) { video.currentTime = S.range[0]; S.musicOff = 0; }
+    video.play();
+  } else video.pause();
+}
+video.addEventListener('play', () => { $('play').innerHTML = '&#10074;&#10074;'; if (actx) { actx.resume(); startMusic(); } S.lastT = video.currentTime; });
+video.addEventListener('pause', () => { $('play').innerHTML = '&#9654;'; if (actx) stopMusic(); });
+$('seek').addEventListener('input', e => { seeking = true; video.currentTime = video.duration * e.target.value / 1000; });
+$('seek').addEventListener('change', () => { seeking = false; });
+
+/* ---------- caption list ---------- */
+function esc(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function renderList(){
+  const list = $('list');
+  if (!S.chunks.length) { list.innerHTML = '<p class="empty">Captions appear here. Edit any word or emoji. Clear the emoji box to remove one.</p>'; return; }
+  list.innerHTML = S.chunks.map((c,i) => `
+    <div class="ck" data-i="${i}">
+      <button class="t" data-a="seek">${fmt(c.start)}</button>
+      <input type="text" data-a="text" value="${esc(c.words.map(w => w.t).join(c.cjk ? '' : ' '))}" aria-label="Caption text">
+      <input type="text" class="em" data-a="emoji" value="${c.emoji}" maxlength="8" aria-label="Emoji">
+      <button class="x" data-a="del" aria-label="Delete caption">&#10005;</button>
+    </div>`).join('');
+}
+function markRow(i){
+  document.querySelectorAll('.ck.now').forEach(r => r.classList.remove('now'));
+  if (i < 0) return;
+  const r = document.querySelector(`.ck[data-i="${i}"]`);
+  if (r) { r.classList.add('now'); const l = $('list'); if (r.offsetTop < l.scrollTop || r.offsetTop > l.scrollTop + l.clientHeight - 50) l.scrollTop = r.offsetTop - 60; }
+}
+$('list').addEventListener('input', e => {
+  const row = e.target.closest('.ck'); if (!row) return;
+  const c = S.chunks[+row.dataset.i];
+  if (e.target.dataset.a === 'text') { const v = e.target.value; retext(c, c.cjk ? v.split('').join(' ') : v); }
+  if (e.target.dataset.a === 'emoji') { c.emoji = e.target.value.trim(); S.sfxEv = buildSfx(); }
+});
+$('list').addEventListener('click', e => {
+  const row = e.target.closest('.ck'); if (!row) return;
+  const i = +row.dataset.i, a = e.target.dataset.a;
+  if (a === 'seek') { video.pause(); video.currentTime = S.chunks[i].start + 0.02; }
+  if (a === 'del') { S.chunks.splice(i,1); renderList(); refreshEdit(); }
+});
+$('resuggest').addEventListener('click', () => { assignEmojis(S.chunks); renderList(); refreshEdit(); });
+$('srt').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([toSrt(S.chunks)], {type:'text/plain'}));
+  a.download = 'captions.srt'; a.click();
+});
+
+/* ---------- post text ---------- */
+$('platChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  document.querySelectorAll('#platChips .chip').forEach(o => o.setAttribute('aria-pressed','false'));
+  c.setAttribute('aria-pressed','true'); S.plat = c.dataset.p; if ($('postOut').style.display !== 'none') genPost();
+});
+function transcriptText(){ return S.chunks.map(c => c.words.map(w => w.t).join(c.cjk ? '' : ' ')).join(' '); }
+async function copyText(txt, btn){
+  try { await navigator.clipboard.writeText(txt); } catch { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  if (btn) { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1200); }
+}
+function genPost(){
+  if (!S.chunks.length) { alert('Generate captions first.'); return; }
+  const text = transcriptText();
+  const en = $('lang').value === 'english' || $('translate').checked || looksEnglish(text);
+  const p = makePost(text, S.plat, en);
+  $('titles').innerHTML = p.titles.map((t,i) => `<div class="trow"><span>${esc(t)}</span><button class="btn small" data-ti="${i}">Copy</button></div>`).join('');
+  $('titles').dataset.t = JSON.stringify(p.titles);
+  $('desc').value = p.description; $('tags').value = p.hashtags.join(' ');
+  $('postOut').style.display = 'block';
+}
+$('postGen').addEventListener('click', genPost);
+$('titles').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; copyText(JSON.parse($('titles').dataset.t)[+b.dataset.ti], b); });
+document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => copyText($(b.dataset.copy).value, b)));
+
+/* ---------- shorts finder ---------- */
+$('lenChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  document.querySelectorAll('#lenChips .chip').forEach(o => o.setAttribute('aria-pressed','false'));
+  c.setAttribute('aria-pressed','true'); S.slen = +c.dataset.l;
+});
+$('findShorts').addEventListener('click', () => {
+  const out = $('shortsOut');
+  if (!S.chunks.length) { out.innerHTML = '<p class="hint">Generate captions first.</p>'; return; }
+  const res = findShorts(S.chunks, S.slen, 5);
+  if (!res.length) { out.innerHTML = '<p class="hint">No clean clip of that length found. Try a different length, or a longer video.</p>'; return; }
+  out.innerHTML = res.map((r,i) => `
+    <div class="card"><div class="res"><div><span class="tm">${fmt(r.start)} to ${fmt(r.end)} (${Math.round(r.end - r.start)} s)</span><p>${esc(r.text)}…</p></div>
+    <button class="btn small primary" data-si="${i}">Use</button></div></div>`).join('');
+  out.dataset.r = JSON.stringify(res.map(r => [r.start, r.end]));
+});
+$('shortsOut').addEventListener('click', e => {
+  const b = e.target.closest('button[data-si]'); if (!b) return;
+  const [a, z] = JSON.parse($('shortsOut').dataset.r)[+b.dataset.si];
+  setRange(a, z); video.pause(); video.currentTime = a; S.musicOff = 0;
+  b.textContent = 'Selected';
+});
+
+/* ---------- export ---------- */
+function seekTo(t){
+  return new Promise(res => {
+    if (Math.abs(video.currentTime - t) < 0.02) return res();
+    const f = () => { video.removeEventListener('seeked', f); res(); };
+    video.addEventListener('seeked', f); video.currentTime = t; setTimeout(res, 800);
+  });
+}
+function finishExport(){ if (S.finish) { const f = S.finish; S.finish = null; video.pause(); f(); } }
+$('export').addEventListener('click', async () => {
+  if (S.exporting || !S.chunks.length) return;
+  if (!window.MediaRecorder) { $('enote').textContent = 'Export needs a browser with MediaRecorder. Use Chrome or Edge.'; return; }
+  ensureAudio(); await actx.resume(); readCfg();
+  const types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  const mime = types.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+  S.exporting = true; $('export').disabled = true; $('gen').disabled = true; $('dl').style.display = 'none';
+  spk.gain.value = 0; video.pause(); stopMusic(); S.musicOff = 0;
+  await seekTo(S.range[0]);
+  const stream = canvas.captureStream(30);
+  recDest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+  const rec = new MediaRecorder(stream, mime ? { mimeType:mime, videoBitsPerSecond:8000000 } : { videoBitsPerSecond:8000000 });
+  const parts = []; rec.ondataavailable = e => e.data.size && parts.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  S.finish = () => setTimeout(() => rec.stop(), 400);
+  $('enote').textContent = 'Exporting. Keep this tab open and in front.';
+  rec.start(500);
+  try { await video.play(); } catch { finishExport(); }
+  await done;
+  spk.gain.value = 1; S.exporting = false; S.finish = null;
+  const blob = new Blob(parts, { type: mime || 'video/webm' });
+  const dl = $('dl'); if (dl.dataset.u) URL.revokeObjectURL(dl.dataset.u);
+  dl.dataset.u = URL.createObjectURL(blob); dl.href = dl.dataset.u; dl.download = 'captioned.' + ext; dl.style.display = 'inline-flex';
+  setBar($('ebar'), $('ebarfill'), null);
+  $('enote').textContent = ext === 'mp4' ? 'Done. Your file is ready.' : 'Done. This browser saved a WebM file. YouTube accepts it. For TikTok, convert it to MP4 first (for example with a free online converter).';
+  $('export').disabled = false; $('gen').disabled = false;
+});
+</script>
+</body>
+</html>
